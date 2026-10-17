@@ -8,7 +8,18 @@ from pathlib import Path
 from . import __version__, organizer
 
 
+def force_utf8_stdout() -> None:
+    """Windows consoles default to cp1252/cp866 — Ukrainian log text would crash print()."""
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+            except Exception:
+                pass
+
+
 def main(argv=None) -> int:
+    force_utf8_stdout()
     parser = argparse.ArgumentParser(
         prog="photosort",
         description="Сортування фотографій за датою та місцем (EXIF + GPS + геокодинг).",
