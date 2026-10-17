@@ -1,0 +1,22 @@
+[project]
+name = "photosort"
+version = "1.0.0"
+description = "Photo organizer: sort photos into folders by date and location (EXIF + GPS + reverse geocoding). Cross-platform GUI + CLI."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "henzelis" }]
+dependencies = [
+    "Pillow>=9.0",
+    "pillow-heif>=0.13",
+]
+
+[project.scripts]
+photosort = "photosort.cli:main"
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
