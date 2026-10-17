@@ -35,20 +35,19 @@ def main(argv=None) -> int:
     parser.add_argument("--no-network", action="store_true",
                         help="не звертатись до Nominatim (папки місць матимуть координати/«Невідоме місце»)")
     parser.add_argument("--lang", default="uk", help="мова назв місць (default: uk)")
+    parser.add_argument("--no-browser", action="store_true",
+                        help="веб-інтерфейс: не відкривати браузер автоматично")
+    parser.add_argument("--port", type=int, default=None,
+                        help="веб-інтерфейс: фіксований порт (типово авто-підбір з 8720)")
     parser.add_argument("--dry-run", action="store_true",
                         help="лише показати план, нічого не копіювати")
     parser.add_argument("--version", action="version", version=f"photosort {__version__}")
     args = parser.parse_args(argv)
 
     if not args.src or not args.dst:
-        # GUI mode
-        try:
-            from .gui import run_gui
-        except ImportError:
-            print("Для GUI потрібен tkinter. Або вкажіть папки в аргументах (photosort --help).",
-                  file=sys.stderr)
-            return 2
-        run_gui()
+        # Web UI mode (default)
+        from .server import run_web
+        run_web(open_browser=not args.no_browser, port=args.port)
         return 0
 
     src, dst = Path(args.src), Path(args.dst)

@@ -44,5 +44,5 @@ if ($UserPath -notlike "*$Bin*") {
 }
 
 Write-Host ""
-Write-Host "Запуск:  photosort          — графічний інтерфейс"
+Write-Host "Запуск:  photosort          — графічний інтерфейс (браузер)"
 Write-Host "         photosort --help   — командний рядок"

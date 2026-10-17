@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PhotoSort</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="app.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='15' fill='none' stroke='%232F7BFF' stroke-width='4'/%3E%3Ccircle cx='20' cy='20' r='6' fill='%2327D3F5'/%3E%3C/svg%3E">
+<script src="vendor/echarts.min.js"></script>
+<script src="vendor/world.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <aside class="side">
+    <div class="brand">
+      <svg width="40" height="34" viewBox="0 0 40 34" aria-hidden="true">
+        <defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#27D3F5"/><stop offset="1" stop-color="#2F7BFF"/></linearGradient></defs>
+        <circle cx="20" cy="17" r="13" fill="none" stroke="url(#lg1)" stroke-width="3.4"/>
+        <circle cx="20" cy="17" r="5" fill="url(#lg1)"/>
+        <path d="M20 4v-1M31.5 8.5l.8-.8M36 17h1M8.5 8.5l-.8-.8M4 17H3" stroke="url(#lg1)" stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+      <div><b>PhotoSort</b><small>фото → дата · місце</small></div>
+    </div>
+
+    <nav class="nav" id="nav" aria-label="Кроки">
+      <button id="step1" data-go="setup"><i>1</i>Папка та режим</button>
+      <button id="step2" data-go="explore"><i>2</i>Огляд бібліотеки</button>
+      <button id="step3" data-go="plan"><i>3</i>План і запуск</button>
+    </nav>
+
+    <div class="ministats" id="ministats" hidden>
+      <div><b id="msTotal">0</b><span>фото</span></div>
+      <div><b id="msGeo">0</b><span>гео</span></div>
+      <div><b id="msDated">0</b><span>дати</span></div>
+      <div><b id="msPlaces">0</b><span>місця</span></div>
+    </div>
+
+    <div class="health">
+      <div class="coll"><span class="dot" id="stDot"></span><b id="stName">Очікування</b></div>
+      <div class="ingest glass" id="ingestCard" hidden>
+        <div class="k" id="progK">прогрес</div>
+        <div class="v" id="progV">—</div>
+        <div class="meter"><i id="progM" style="width:0"></i></div>
+      </div>
+      <div class="ver" id="ver">PhotoSort</div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="top">
+      <label class="sel glass" title="Вхідна папка">
+        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M1.5 4.5A1.5 1.5 0 0 1 3 3h3l1.5 2H13a1.5 1.5 0 0 1 1.5 1.5v5A1.5 1.5 0 0 1 13 13H3a1.5 1.5 0 0 1-1.5-1.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <span class="val" id="srcChip">папку не обрано</span>
+      </label>
+      <label class="sel glass" title="Куди сортувати">
+        <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h10M9 4.5 12.5 8 9 11.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M1.5 4.5A1.5 1.5 0 0 1 3 3h2l1.2 1.8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M1.5 11.5A1.5 1.5 0 0 0 3 13h10a1.5 1.5 0 0 0 1.5-1.5v-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <span class="val" id="dstChip">папку не обрано</span>
+      </label>
+      <button class="btn warn" id="btnCancel" hidden>Скасувати</button>
+      <button class="btn ghost" id="btnReset" hidden>Почати заново</button>
+    </div>
+
+    <!-- ============ VIEW: SETUP ============ -->
+    <section class="view" id="view-setup">
+      <div class="hero glass">
+        <div class="hero-in">
+          <h1>Впорядкуйте тисячі фотографій<br><em>за датою та місцем</em></h1>
+          <p>PhotoSort читає EXIF і GPS прямо з файлів, знаходить назви міст і будує
+          чисту структуру папок. Все локально — фото нікуди не надсилаються.</p>
+          <div class="feats">
+            <span><i class="dot ok"></i>JPEG · HEIC · PNG · TIFF · WebP</span>
+            <span><i class="dot ok"></i>OpenStreetMap геокодинг + кеш</span>
+            <span><i class="dot ok"></i>Windows · macOS · Linux</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid12">
+        <div class="card glass span6 pick" id="pickSrc">
+          <div class="ico big"><svg width="22" height="22" viewBox="0 0 16 16"><path d="M1.5 4.5A1.5 1.5 0 0 1 3 3h3l1.5 2H13a1.5 1.5 0 0 1 1.5 1.5v5A1.5 1.5 0 0 1 13 13H3a1.5 1.5 0 0 1-1.5-1.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+          <div class="ct">
+            <h3>Звідки брати фото</h3>
+            <p class="sub" id="srcPath">разом із вкладеними папками</p>
+          </div>
+          <button class="btn">Обрати папку…</button>
+        </div>
+
+        <div class="card glass span6 pick" id="pickDst">
+          <div class="ico big alt"><svg width="22" height="22" viewBox="0 0 16 16"><path d="M8 1.5v9M4.5 7 8 10.5 11.5 7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M1.5 11v2A1.5 1.5 0 0 0 3 14.5h10a1.5 1.5 0 0 0 1.5-1.5v-2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div class="ct">
+            <h3>Куди складати</h3>
+            <p class="sub" id="dstPath">порожня папка — радимо створити нову</p>
+          </div>
+          <button class="btn">Обрати папку…</button>
+        </div>
+
+        <div class="card glass span12">
+          <h3 class="ttl">Як сортувати</h3>
+          <div class="modes" id="modes">
+            <button class="mode on" data-mode="date_location">
+              <div class="mhead"><b>За датою та місцем</b><span class="tag">типово</span></div>
+              <div class="path"><i>2024</i><i>07</i><i class="hl">Київ</i></div>
+              <p>Рік → місяць → назва місця зйомки</p>
+            </button>
+            <button class="mode" data-mode="date">
+              <div class="mhead"><b>Тільки за датою</b></div>
+              <div class="path"><i>2024</i><i>07</i></div>
+              <p>Рік → місяць, без географії</p>
+            </button>
+            <button class="mode" data-mode="location">
+              <div class="mhead"><b>Тільки за місцем</b></div>
+              <div class="path"><i class="hl">Київ</i><i>2024</i></div>
+              <p>Місце → рік, для подорожей</p>
+            </button>
+          </div>
+          <div class="toggles">
+            <label class="tgl"><input type="checkbox" id="netTgl" checked><span class="track"></span>
+              <em>Визначати місця через інтернет</em><small>Nominatim · 1 запит/с · кешується</small></label>
+            <label class="tgl"><input type="checkbox" id="moveTgl"><span class="track"></span>
+              <em>Переміщувати замість копіювання</em><small>типово файли копіюються безпечно</small></label>
+          </div>
+        </div>
+
+        <div class="actbar glass span12">
+          <div class="hint" id="setupHint">Оберіть обидві папки, щоб почати</div>
+          <button class="btn primary xl" id="btnScan" disabled>✦ Сканувати фотографії</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VIEW: SCANNING ============ -->
+    <section class="view" id="view-scan" hidden>
+      <div class="card glass span12 work">
+        <div class="spin"></div>
+        <h2 id="scanTitle">Читаємо EXIF та геотеги…</h2>
+        <div class="bigmeter"><i id="scanM" style="width:0"></i></div>
+        <div class="mono cnt" id="scanCnt">0 / 0</div>
+        <div class="log glass" id="logScan"></div>
+      </div>
+    </section>
+
+    <!-- ============ VIEW: EXPLORE ============ -->
+    <section class="view" id="view-explore" hidden>
+      <div class="grid12">
+        <div class="kcard glass"><div class="ico"><svg width="20" height="20" viewBox="0 0 16 16"><rect x="1.5" y="3.5" width="13" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5.5" cy="6.5" r="1.2" fill="currentColor"/><path d="m2.5 11 3.5-3.2L8 9.8l2.8-2.6 2.7 3z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></div><div class="v" id="kTotal">0</div><div class="k">фотографій</div></div>
+        <div class="kcard glass"><div class="ico c4"><svg width="20" height="20" viewBox="0 0 16 16"><path d="M8 14.5S2.5 9.8 2.5 6a5.5 5.5 0 0 1 11 0c0 3.8-5.5 8.5-5.5 8.5z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="6" r="1.8" fill="currentColor"/></svg></div><div class="v" id="kGeo">0</div><div class="k">з геотегом</div></div>
+        <div class="kcard glass"><div class="ico c5"><svg width="20" height="20" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="v" id="kDated">0</div><div class="k">з EXIF-датою</div></div>
+        <div class="kcard glass"><div class="ico c6"><svg width="20" height="20" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 8h12M8 2c2.2 2 2.2 10 0 12M8 2C5.8 4 5.8 12 8 14" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></div><div class="v" id="kPlaces">0</div><div class="k">локацій на мапі</div></div>
+
+        <div class="card glass span7 chart" id="mapCard">
+          <h3 class="ttl">Де зняті ваші фото <span class="sub2">розмір кола = кількість кадрів</span></h3>
+          <div id="map" class="chartbox"></div>
+        </div>
+
+        <div class="card glass span5 chart">
+          <h3 class="ttl">Топ місць</h3>
+          <div class="bars" id="places"></div>
+        </div>
+
+        <div class="card glass span12 chart">
+          <h3 class="ttl">Хронологія по місяцях</h3>
+          <div id="months" class="chartbox wide"></div>
+        </div>
+
+        <div class="card glass span12">
+          <h3 class="ttl">Зріз бібліотеки</h3>
+          <div class="thumbs" id="thumbs"></div>
+        </div>
+
+        <div class="actbar glass span12">
+          <div class="hint">Режим можна змінити — план перебудується миттєво</div>
+          <div class="row">
+            <div class="seg" id="segMode">
+              <button data-mode="date_location" aria-pressed="true">дата + місце</button>
+              <button data-mode="date" aria-pressed="false">дата</button>
+              <button data-mode="location" aria-pressed="false">місце</button>
+            </div>
+            <button class="btn xl primary" id="btnPlan">Побудувати план →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VIEW: PLAN / RUN / DONE ============ -->
+    <section class="view" id="view-plan" hidden>
+      <div class="grid12">
+        <div class="card glass span7">
+          <h3 class="ttl">Структура папок <span class="sub2" id="planDst"></span></h3>
+          <div class="tree" id="tree"></div>
+        </div>
+        <div class="card glass span5 runpanel">
+          <h3 class="ttl">Запуск</h3>
+          <div class="runinfo mono" id="runInfo"></div>
+          <div class="bigmeter slim" id="runMeter"><i id="runM" style="width:0"></i></div>
+          <button class="btn primary xl" id="btnRun" disabled>✦ <span id="runLabel">Сортувати</span></button>
+          <div class="donebox" id="donebox" hidden>
+            <div class="check">✓</div>
+            <h2 id="doneH">Готово!</h2>
+            <div class="donestats" id="doneStats"></div>
+            <div class="mono small" id="doneDst"></div>
+          </div>
+          <div class="log glass" id="logRun"></div>
+        </div>
+      </div>
+    </section>
+
+    <p class="foot-note">PhotoSort · локальний застосунок · <span id="ftVer"></span></p>
+  </main>
+</div>
+
+<!-- ============ folder browser modal ============ -->
+<div class="modal" id="modal" hidden>
+  <div class="sheet glass">
+    <div class="sheet-head">
+      <b id="browseTitle">Оберіть папку</b>
+      <button class="iconbtn" id="btnClose">✕</button>
+    </div>
+    <div class="crumbs mono" id="crumbs"></div>
+    <div class="dirlist" id="dirlist"></div>
+    <div class="sheet-foot">
+      <span class="mono small" id="browsePath"></span>
+      <button class="btn primary" id="btnPickHere">Обрати цю папку</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -44,5 +44,5 @@ case ":$PATH:" in
 esac
 
 echo ""
-echo "Запуск:  photosort          — графічний інтерфейс"
+echo "Запуск:  photosort          — графічний інтерфейс (браузер)"
 echo "         photosort --help   — командний рядок"
